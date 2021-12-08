@@ -7,7 +7,7 @@ class ByteBankApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         home: Scaffold(
-      body: TransferForm(),
+      body: TransferList(),
     ));
   }
 }
@@ -22,41 +22,46 @@ class TransferForm extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Criando Transferência')),
       body: Column(children: <Widget>[
-        Padding(
-          padding: EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _fieldControllerAccountNumber,
-            style: TextStyle(fontSize: 24.0),
-            decoration:
-                InputDecoration(labelText: 'Número da Conta', hintText: '0000'),
-            keyboardType: TextInputType.number,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _fieldControllerValue,
-            style: TextStyle(fontSize: 24.0),
-            decoration: InputDecoration(
-                icon: Icon(Icons.monetization_on),
-                labelText: 'Valor',
-                hintText: '0.00'),
-            keyboardType: TextInputType.number,
-          ),
-        ),
+        Editor(controller: _fieldControllerAccountNumber, label: 'Número da Conta', hint: '0000'),
+        Editor(controller: _fieldControllerValue, label: 'Valor', icon: Icons.monetization_on, hint: '0.00'),
         ElevatedButton(
-            onPressed: () {
-              debugPrint('clicou no confirmar');
-              final int? accountNumber =
-                  int.tryParse(_fieldControllerAccountNumber.text);
-              final double? value = double.tryParse(_fieldControllerValue.text);
-              if (accountNumber != null && value != null) {
-                final createdTransfer = Transfer(value, accountNumber);
-                debugPrint('$createdTransfer');
-              }
-            },
+            onPressed: () => _createTransfer(context),
             child: Text('Confirmar'))
       ]),
+    );
+  }
+
+  void _createTransfer(BuildContext context) {
+    final int? accountNumber =
+        int.tryParse(_fieldControllerAccountNumber.text);
+    final double? value = double.tryParse(_fieldControllerValue.text);
+    if (accountNumber != null && value != null) {
+      final createdTransfer = Transfer(value, accountNumber);
+      debugPrint('CRIANDO TRANSFERENCIA...');
+      debugPrint('$createdTransfer');
+      Navigator.pop(context, createdTransfer);
+    }
+  }
+}
+
+class Editor extends StatelessWidget {
+  final TextEditingController? controller;
+  final String? label;
+  final String? hint;
+  final IconData? icon;
+
+  Editor({this.controller, this.label, this.hint, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16.0),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(fontSize: 24.0),
+        decoration: InputDecoration(icon: icon != null ? Icon(icon) : null, labelText: label, hintText: hint),
+        keyboardType: TextInputType.number,
+      ),
     );
   }
 }
@@ -74,7 +79,15 @@ class TransferList extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          final Future<Transfer?> future = Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return TransferForm();
+          }));
+          future.then((receivedTransfer) {
+            debugPrint('MEU DEUS');
+            debugPrint('$receivedTransfer');
+          });
+        },
         child: Icon(Icons.add),
       ),
     );
